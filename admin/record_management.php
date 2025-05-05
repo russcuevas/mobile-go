@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin - Product Management</title>
+    <style>
+        /* Reset and base styles */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        header {
+            background-color: #2a9d8f;
+            padding: 1rem 2rem;
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .back-button {
+            background-color: transparent;
+            border: 2px solid #ecf0f1;
+            color: #ecf0f1;
+            padding: 6px 14px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: none;
+            margin-left: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .back-button:hover {
+            background-color: #1abc9c;
+            border-color: #1abc9c;
+            color: white;
+        }
+
+        main {
+            max-width: 1040px;
+            margin: 2rem auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #264653;
+        }
+
+        /* Form styles */
+        form#addProductForm {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: flex-end;
+        }
+
+        form#addProductForm>div {
+            flex: 1 1 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        form label {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: #264653;
+        }
+
+        form input,
+        form textarea {
+            padding: 0.5rem 0.7rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        form input:focus,
+        form textarea:focus {
+            outline: none;
+            border-color: #2a9d8f;
+            box-shadow: 0 0 5px #2a9d8f88;
+        }
+
+        form button {
+            background: #2a9d8f;
+            color: white;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        form button:hover {
+            background: #21867a;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1rem;
+        }
+
+        thead th {
+            background: #264653;
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            user-select: none;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tbody td {
+            border-bottom: 1px solid #ddd;
+            padding: 0.7rem 1rem;
+            vertical-align: middle;
+        }
+
+        tbody td input,
+        tbody td textarea {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        tbody td input:focus,
+        tbody td textarea:focus {
+            outline: none;
+            border-color: #2a9d8f;
+            box-shadow: 0 0 5px #2a9d8f88;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button.action-btn {
+            cursor: pointer;
+            padding: 0.3rem 0.6rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button.edit-btn {
+            background: #e9c46a;
+            color: #264653;
+        }
+
+        button.edit-btn:hover {
+            background: #d4b339;
+        }
+
+        button.save-btn {
+            background: #2a9d8f;
+            color: white;
+        }
+
+        button.save-btn:hover {
+            background: #1e5f65;
+        }
+
+        button.cancel-btn {
+            background: #e76f51;
+            color: white;
+        }
+
+        button.cancel-btn:hover {
+            background: #ba5139;
+        }
+
+        button.delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        button.delete-btn:hover {
+            background: #c22a1a;
+        }
+
+        /* Responsive desktop max width */
+        @media (max-width: 1080px) {
+            main {
+                margin: 1rem 1.5rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header> Product Management</header>
+    <button class="back-button" onclick="window.location.href='admin.php';">Back</button>
+    <main>
+        <h2>Manage Products</h2>
+        <form id="addProductForm">
+            <div>
+                <label for="productName">Name</label>
+                <input type="text" id="productName" required placeholder="Product name" />
+            </div>
+            <div>
+                <label for="productDesc">Description</label>
+                <textarea id="productDesc" rows="1" placeholder="Short description"></textarea>
+            </div>
+            <div>
+                <label for="productPrice">Price ($)</label>
+                <input type="number" id="productPrice" min="0" step="0.01" required placeholder="0.00" />
+            </div>
+            <div>
+                <label for="productStock">Stock</label>
+                <input type="number" id="productStock" min="0" step="1" required placeholder="0" />
+            </div>
+            <div>
+                <button type="submit">Add Product</button>
+            </div>
+        </form>
+        <table id="productsTable" aria-label="Product records table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">ID</th>
+                    <th style="width: 20%;">Name</th>
+                    <th style="width: 35%;">Description</th>
+                    <th style="width: 15%;">Price</th>
+                    <th style="width: 10%;">Stock</th>
+                    <th style="width: 15%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Product rows go here -->
+            </tbody>
+        </table>
+    </main>
+
+</body>
+
+</html>

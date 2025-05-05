@@ -1,0 +1,237 @@
+        /* Reset and base */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: #2c3e50;
+            padding: 1rem 2rem;
+            color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            user-select: none;
+        }
+
+        header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .back-button {
+            background-color: transparent;
+            border: 2px solid #ecf0f1;
+            color: #ecf0f1;
+            padding: 6px 14px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: none;
+            margin-left: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .back-button:hover {
+            background-color: #1abc9c;
+            border-color: #1abc9c;
+            color: white;
+        }
+
+        main {
+            padding: 1.5rem 2rem;
+            height: calc(100vh - 66px);
+            overflow-y: auto;
+        }
+
+        h2 {
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #34495e;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        form#add-order-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+            background: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgb(0 0 0 / 0.07);
+        }
+
+        form#add-order-form>div {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 180px;
+        }
+
+        form#add-order-form label {
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+            color: #555;
+        }
+
+        form#add-order-form input[type="text"],
+        form#add-order-form input[type="number"],
+        form#add-order-form select {
+            font-size: 1rem;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            transition: border-color 0.2s ease;
+        }
+
+        form#add-order-form input[type="text"]:focus,
+        form#add-order-form input[type="number"]:focus,
+        form#add-order-form select:focus {
+            border-color: #1abc9c;
+            outline: none;
+        }
+
+        form#add-order-form button {
+            padding: 10px 18px;
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            flex: 0 0 140px;
+        }
+
+        form#add-order-form button:hover {
+            background-color: #138d75;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            font-size: 0.95rem;
+            box-shadow: 0 0 7px rgb(0 0 0 / 0.05);
+            border-radius: 8px;
+            background: white;
+            overflow: hidden;
+        }
+
+        thead tr {
+            background-color: #1abc9c;
+            color: white;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        thead th {
+            padding: 12px 20px;
+        }
+
+        tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.2s ease;
+            cursor: default;
+        }
+
+        tbody tr:hover {
+            background-color: #ecf7f3;
+        }
+
+        tbody td {
+            padding: 15px 20px;
+            vertical-align: middle;
+        }
+
+        .status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+            min-width: 90px;
+            user-select: none;
+        }
+
+        /* status colors */
+        .status.pending {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .status.processing {
+            background-color: #2980b9;
+            color: white;
+        }
+
+        .status.completed {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .status.cancelled {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        /* Action buttons */
+        button.action-btn {
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-right: 10px;
+            transition: color 0.3s ease;
+            user-select: none;
+        }
+
+        button.action-btn.update {
+            color: #2980b9;
+        }
+
+        button.action-btn.update:hover {
+            color: #1c5980;
+        }
+
+        button.action-btn.delete {
+            color: #c0392b;
+        }
+
+        button.action-btn.delete:hover {
+            color: #801f19;
+        }
+
+        /* Scrollbar styling */
+        main::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        main::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        main::-webkit-scrollbar-thumb {
+            background-color: #1abc9c;
+            border-radius: 10px;
+            border: 2px solid #f0f0f0;
+        }

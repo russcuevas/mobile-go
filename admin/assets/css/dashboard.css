@@ -1,0 +1,255 @@
+body {
+    font-family: "Roboto", sans-serif;
+}
+
+#recordsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#form-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+#submitBtn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#submitBtn:hover {
+    background-color: #2980b9;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #2980b9;
+    color: white;
+}
+
+tbody tr:hover {
+    background-color: #f1f8ff;
+}
+
+.actions button {
+    background-color: #e74c3c;
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 3px;
+    margin-right: 5px;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.actions button.edit-btn {
+    background-color: #27ae60;
+}
+
+.actions button:hover {
+    opacity: 0.9;
+}
+
+header {
+    background: #2a9d8f;
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 0.15);
+}
+
+main {
+    margin: 1rem auto 2rem;
+    max-width: 1200px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgb(0 0 0 / 0.1);
+    padding: 1rem 2rem 2rem 2rem;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    user-select: none;
+}
+
+.tab {
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-bottom: none;
+    background: #e9f5f2;
+    color: #2a9d8f;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    border-radius: 6px 6px 0 0;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.tab.active {
+    background: white;
+    color: #1c5f56;
+    border-color: #2a9d8f;
+    border-bottom: 2px solid white;
+}
+
+.tab:hover:not(.active) {
+    background: #cce7e4;
+}
+
+.tab-content {
+    padding-top: 1rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th,
+td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background: #2a9d8f;
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+tbody tr:hover {
+    background: #f1f9f8;
+}
+
+form {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    padding: 0.35rem 0.5rem;
+    font-size: 1rem;
+    border: 1.5px solid #cccccc;
+    border-radius: 5px;
+    width: 100%;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    outline: none;
+    border-color: #2a9d8f;
+}
+
+button {
+    background: #2a9d8f;
+    border: none;
+    color: white;
+    padding: 0.65rem 1rem;
+    border-radius: 5px;
+    font-weight: 600;
+    cursor: pointer;
+    justify-self: start;
+    margin-top: 1.5rem;
+    transition: background 0.3s ease;
+}
+
+button:hover:enabled {
+    background: #1c5f56;
+}
+
+button:disabled {
+    background: #92b9b2;
+    cursor: not-allowed;
+}
+
+.status-critical {
+    color: #e63946;
+    font-weight: 700;
+}
+
+.status -backorder {
+    color: #f4a261;
+    font-weight: 700;
+}
+
+/* Responsive for desktop but also smaller windows */
+@media (max-width: 800px) {
+    main {
+        padding: 1rem;
+    }
+
+    form {
+        grid-template-columns: 1fr;
+    }
+}
+
+.message {
+    background: #2a9d8f;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    margin: 1rem 0 0 0;
+    font-weight: 600;
+    display: none;
+}
+
+.message.show {
+    display: block;
+}
