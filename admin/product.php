@@ -1,3 +1,55 @@
+<?php
+session_start();
+include '../connection/database.php';
+
+// Delete a specific product
+if (isset($_GET['delete'])) {
+    $id = (int) $_GET['delete'];
+    $stmt = $conn->prepare("DELETE FROM tbl_products WHERE id = :id");
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+
+    // Output success message using JavaScript alert
+    echo "<script>alert('Product deleted successfully.'); window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+    exit;
+}
+
+// Delete all products
+if (isset($_GET['clear_all'])) {
+    $conn->query("DELETE FROM tbl_products");
+
+    // Output success message using JavaScript alert
+    echo "<script>alert('All products deleted successfully.'); window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+    exit;
+}
+
+
+// Add a new product
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['productName'] ?? '';
+    $price = $_POST['productPrice'] ?? 0;
+    $description = $_POST['productDescription'] ?? '';
+    $link = $_POST['productImageUrl'] ?? '';
+
+    if (!empty($name) && $price > 0) {
+        $stmt = $conn->prepare("INSERT INTO tbl_products (product_name, product_price, product_description, product_link) VALUES (:name, :price, :description, :link)");
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':price', $price);
+        $stmt->bindParam(':description', $description);
+        $stmt->bindParam(':link', $link);
+        $stmt->execute();
+
+        // Build message for display
+        $successMessage = "Product added successfully.";
+    }
+}
+
+// Fetch products
+$stmt = $conn->query("SELECT * FROM tbl_products ORDER BY id DESC");
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,269 +57,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>Online Shopping</title>
-    <style>
-        /* Reset and base */
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            /* Increased padding for desktop */
-        }
-
-        header {
-            width: 100%;
-            max-width: 800px;
-            /* Increased max-width for desktop */
-            text-align: center;
-            margin-bottom: 20px;
-            /* Increased margin for spacing */
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            /* Increased font size for header */
-            color: #0d6efd;
-            margin: 0;
-            font-weight: 700;
-        }
-
-        /* Admin Panel */
-        .admin-panel {
-            background: white;
-            padding: 20px;
-            /* Increased padding for desktop */
-            border-radius: 12px;
-            box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
-            width: 100%;
-            max-width: 800px;
-            /* Increased max-width for desktop */
-            margin-bottom: 20px;
-            /* Increased margin for spacing */
-        }
-
-        .admin-panel h2 {
-            margin-top: 0;
-            font-weight: 600;
-            color: #0d6efd;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-            /* Increased font size for admin panel */
-            user-select: none;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            /* Increased margin for spacing */
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 1rem;
-            /* Increased font size for labels */
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            /* Increased padding for inputs */
-            border: 1.5px solid #ccc;
-            border-radius: 8px;
-            font-size: 1rem;
-            /* Increased font size for inputs */
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #0d6efd;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-            /* Increased minimum height for textarea */
-        }
-
-        .btn-add,
-        .btn-clear {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: white;
-            font-weight: 600;
-            padding: 12px 20px;
-            /* Increased padding for buttons */
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1.1rem;
-            /* Increased font size for buttons */
-            transition: background-color 0.3s ease;
-            user-select: none;
-            margin-top: 10px;
-            /* Increased margin for spacing */
-        }
-
-        .btn-add:hover,
-        .btn-clear:hover {
-            background-color: #084aec;
-        }
-
-        /* Product list style */
-        .products-container {
-            width: 100%;
-            max-width: 800px;
-            /* Increased max-width for desktop */
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            /* Adjusted for 3 columns on desktop */
-            gap: 20px;
-            /* Increased gap between products */
-        }
-
-        @media (max-width: 800px) {
-            .products-container {
-                grid-template-columns: repeat(2, 1fr);
-                /* 2 columns for smaller screens */
-            }
-        }
-
-        @media (max-width: 500px) {
-            .products-container {
-                grid-template-columns: 1fr;
-                /* 1 column for mobile */
-            }
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 12px box-shadow 0 2px 12px rgb(0 0 0 / 0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            user-select: none;
-            position: relative;
-        }
-
-        .product-image {
-            width: 100%;
-            height: 220px;
-            /* Increased height for product images */
-            object-fit: cover;
-            background: #ddd;
-        }
-
-        .product-info {
-            padding: 15px;
-            /* Increased padding for product info */
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .product-name {
-            font-size: 1.3rem;
-            /* Increased font size for product name */
-            font-weight: 700;
-            margin: 0 0 8px 0;
-            color: #0d6efd;
-        }
-
-        .product-price {
-            font-size: 1.1rem;
-            /* Increased font size for product price */
-            font-weight: 600;
-            color: #198754;
-            margin-bottom: 8px;
-        }
-
-        .product-description {
-            font-size: 1rem;
-            /* Increased font size for product description */
-            color: #555;
-            flex-grow: 1;
-        }
-
-        .btn-remove {
-            position: absolute;
-            top: 15px;
-            /* Adjusted position for remove button */
-            right: 15px;
-            /* Adjusted position for remove button */
-            background: #dc3545;
-            border: none;
-            color: white;
-            font-weight: 700;
-            padding: 6px 12px;
-            /* Increased padding for remove button */
-            font-size: 0.9rem;
-            /* Increased font size for remove button */
-            border-radius: 8px;
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.3s ease;
-        }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            /* Distance from the top */
-            left: 20px;
-            /* Distance from the left */
-            background-color: #0d6efd;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .back-button:hover {
-            background-color: #084aec;
-        }
-
-        /* Mobile optimization height fit */
-        @media (max-height: 600px) {
-            body {
-                padding: 10px;
-                /* Adjusted padding for mobile */
-                overflow-y: auto;
-            }
-
-            .admin-panel,
-            .products-container {
-                max-height: none;
-            }
-
-            .product-card {
-                height: auto;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/product.css">
 </head>
 
 <body>
-    </header>
     <button class="back-button" onclick="window.location.href='admin.php';">Back</button>
     <section class="admin-panel" aria-label="Admin Product Entry Panel">
         <h2>Add a New Product</h2>
-        <form id="productForm" aria-label="Add product form">
+        <form id="productForm" method="POST" action="" aria-label="Add product form">
+            <?php if (!empty($successMessage)): ?>
+                <div class="success-message">
+                    <?= $successMessage ?>
+                </div>
+            <?php endif; ?>
+
+
             <div class="form-group">
                 <label for="productName">Product Name *</label>
                 <input type="text" id="productName" name="productName" placeholder="Enter product name" required />
@@ -300,12 +104,34 @@
             </div>
             <button type="submit" class="btn-add">Add Product</button>
         </form>
-        <button id="clearAllBtn" class="btn-clear" aria-label="Clear all products">Clear All Products</button>
+        <form method="GET" onsubmit="return confirm('Are you sure you want to delete ALL products?');">
+            <button type="submit" name="clear_all" class="btn-clear" aria-label="Clear all products">Clear All Products</button>
+        </form>
     </section>
 
     <section class="products-container" aria-label="Products List" id="productsList">
-        <!-- Product cards will be dynamically added here -->
+        <?php if (!empty($products)): ?>
+            <?php foreach ($products as $product): ?>
+                <div class="product-card">
+                    <?php if (!empty($product['product_link'])): ?>
+                        <img src="<?= htmlspecialchars($product['product_link']) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>" class="product-image">
+                    <?php endif; ?>
+                    <h3><?= htmlspecialchars($product['product_name']) ?></h3>
+                    <p>₱<?= number_format($product['product_price'], 2) ?></p>
+                    <?php if (!empty($product['product_description'])): ?>
+                        <p><?= htmlspecialchars($product['product_description']) ?></p>
+                    <?php endif; ?>
+                    <form method="GET" onsubmit="return confirm('Are you sure you want to delete this product?');" style="margin-top: 10px;">
+                        <input type="hidden" name="delete" value="<?= $product['id'] ?>">
+                        <button type="submit" class="btn-remove">Remove</button>
+                    </form>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>No products yet.</p>
+        <?php endif; ?>
     </section>
+
 </body>
 
 </html>

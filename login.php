@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && sha1($password) === $user['password']) {
-        $_SESSION['user'] = $user['first_name'];
+        $_SESSION['user'] = $user; // Store the entire user data in the session
         header('Location: index.php');
         exit;
     } else {

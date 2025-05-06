@@ -2,7 +2,7 @@ tbl_admins
 email
 password
 
-tbl_customers
+tbl_customers - check
 first_name
 last_name
 email
@@ -13,7 +13,7 @@ street
 city
 zip
 
-tbl_products
+tbl_products - check
 product_name
 product_price
 product_description
