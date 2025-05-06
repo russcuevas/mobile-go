@@ -58,7 +58,7 @@ request_date
 item
 quantity
 
-tbl_purchase_lead
+tbl_purchase_lead - check
 supplier_name
 request_date
 lead_time

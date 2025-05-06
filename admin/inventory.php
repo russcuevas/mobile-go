@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['admin'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
+include '../connection/database.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -26,10 +36,10 @@
 
         <section id="receiving" class="tab-content" role="tabpanel" aria-labelledby="tab-receiving">
             <h2>Receiving Items</h2>
-            <form id="receiveForm" aria-label="Form to receive new items into inventory">
+            <form id="receiveForm" aria-label="Form to receive new items into inventory" method="POST" action="add_receiving_items.php">
                 <div>
                     <label for="receive-name">Item Name</label>
-                    <input type="text" id="receive-name" name="name" required autocomplete="off" />
+                    <input type="text" id="receive-name" name="item_name" required autocomplete="off" />
                 </div>
                 <div>
                     <label for="receive-qty">Quantity</label>
@@ -37,17 +47,18 @@
                 </div>
                 <div>
                     <label for="receive-critical">Critical Level</label>
-                    <input type="number" id="receive-critical" name="critical" min="0" value="5" required />
+                    <input type="number" id="receive-critical" name="critical_level" min="0" value="5" required />
                 </div>
                 <div>
                     <label for="receive-backorder">Back Order?</label>
-                    <select id="receive-backorder" name="backorder">
+                    <select id="receive-backorder" name="back_order">
                         <option value="false" selected>No</option>
                         <option value="true">Yes</option>
                     </select>
                 </div>
-                <button type="submit">Add / Update Item</button>
+                <button type="submit">Add</button>
             </form>
+
             <div class="message" id="receiveMessage"></div>
         </section>
 
@@ -62,7 +73,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- backorder list -->
+                    <?php
+                    $stmt = $conn->prepare("SELECT item_name, quantity FROM tbl_receiving_items WHERE back_order = 1");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($results as $row): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['item_name']) ?></td>
+                            <td><?= intval($row['quantity']) ?></td>
+                            <td>
+                                <form method="POST" action="mark_received.php" style="display:inline;">
+                                    <input type="hidden" name="item_name" value="<?= htmlspecialchars($row['item_name']) ?>">
+                                    <button type="submit">Mark as Received</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </section>
@@ -79,10 +106,29 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- critical items -->
+                    <?php
+                    $stmt = $conn->prepare("SELECT item_name, quantity, critical_level FROM tbl_receiving_items");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($results as $row): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['item_name']) ?></td>
+                            <td><?= intval($row['quantity']) ?></td>
+                            <td><?= intval($row['critical_level']) ?></td>
+                            <td>
+                                <form method="POST" action="remove_critical_item.php" style="display:inline;">
+                                    <input type="hidden" name="item_name" value="<?= htmlspecialchars($row['item_name']) ?>">
+                                    <button type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
+
             </table>
         </section>
+
 
         <section id="sales" class="tab-content" role="tabpanel" aria-labelledby="tab-sales" hidden>
             <h2>Sales</h2>
