@@ -1,10 +1,54 @@
 <?php
+session_start();
+
+// Check if user is logged in, if not redirect to login page
+if (!isset($_SESSION['admin'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
 // Fetch product data
 include '../connection/database.php';
 $stmt = $conn->prepare("SELECT * FROM tbl_records ORDER BY id DESC");
 $stmt->execute();
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $productName = $_POST['productName'];
+    $productDesc = $_POST['productDesc'];
+    $productPrice = $_POST['productPrice'];
+    $productStock = $_POST['productStock'];
+
+    if (empty($productName) || empty($productDesc) || empty($productPrice) || empty($productStock)) {
+        echo "All fields are required.";
+    } else {
+        // Insert the data into the database
+        $sql = "INSERT INTO tbl_records (product_name, product_description, product_price, product_stocks)
+                VALUES (:product_name, :product_description, :product_price, :product_stocks)";
+
+        // Prepare the statement
+        $stmt = $conn->prepare($sql);
+
+        // Bind parameters
+        $stmt->bindParam(':product_name', $productName);
+        $stmt->bindParam(':product_description', $productDesc);
+        $stmt->bindParam(':product_price', $productPrice);
+        $stmt->bindParam(':product_stocks', $productStock);
+
+        // Execute the statement
+        if ($stmt->execute()) {
+            echo "<script>alert('Record product successfully added.'); window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+            exit;
+        } else {
+            echo "<script>alert('Error adding product.'); window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+            exit;
+        }
+    }
+}
 ?>
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -54,28 +98,29 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <button class="back-button" onclick="window.location.href='admin.php';">Back</button>
     <main>
         <h2>Manage Products</h2>
-        <form id="addProductForm">
+        <form id="addProductForm" method="POST" action="">
             <input type="hidden" id="productId" value="">
             <div>
                 <label for="productName">Name</label>
-                <input type="text" id="productName" required placeholder="Product name" />
+                <input type="text" id="productName" name="productName" required placeholder="Product name" />
             </div>
             <div>
                 <label for="productDesc">Description</label>
-                <textarea id="productDesc" rows="1" placeholder="Short description"></textarea>
+                <textarea id="productDesc" name="productDesc" rows="1" placeholder="Short description"></textarea>
             </div>
             <div>
                 <label for="productPrice">Price (₱)</label>
-                <input type="number" id="productPrice" min="0" step="0.01" required placeholder="0.00" />
+                <input type="number" id="productPrice" name="productPrice" min="0" step="0.01" required placeholder="0.00" />
             </div>
             <div>
                 <label for="productStock">Stock</label>
-                <input type="number" id="productStock" min="0" step="1" required placeholder="0" />
+                <input type="number" id="productStock" name="productStock" min="0" step="1" required placeholder="0" />
             </div>
             <div>
                 <button type="submit">Save Product</button>
             </div>
         </form>
+
 
         <table id="productsTable">
             <thead>

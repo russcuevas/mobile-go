@@ -36,19 +36,6 @@ supplier_contact
 supplier_email
 supplier_address
 
-tbl_purchase_suppliers
-supplier_name
-supplier_email
-request_date
-item
-quantity
-
-tbl_purchase_lead
-supplier_name
-request_date
-lead_time
-expected_delivery
-
 tbl_orders - check
 order_number
 customers_id
@@ -63,6 +50,19 @@ payment
 amount
 status
 created_at
+
+tbl_purchase_suppliers - check
+supplier_name
+supplier_email
+request_date
+item
+quantity
+
+tbl_purchase_lead
+supplier_name
+request_date
+lead_time
+expected_delivery
 
 tbl_receiving_items
 item_name
