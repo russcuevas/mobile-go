@@ -1,3 +1,27 @@
+<?php
+session_start();
+include 'connection/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $email = $_POST['loginEmail'] ?? '';
+    $password = $_POST['loginPassword'] ?? '';
+
+    $sql = "SELECT * FROM tbl_customers WHERE email = :email LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':email', $email);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && sha1($password) === $user['password']) {
+        $_SESSION['user'] = $user['first_name'];
+        header('Location: index.php');
+        exit;
+    } else {
+        echo "<script>alert('Invalid email or password'); window.history.back();</script>";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -82,9 +106,9 @@
     <!-- Login Page -->
     <div class="card" id="loginCard">
         <h2>Login</h2>
-        <form id="loginForm">
-            <input type="email" id="loginEmail" placeholder="Email" required />
-            <input type="password" id="loginPassword" placeholder="Password" required />
+        <form id="loginForm" action="" method="POST">
+            <input type="email" name="loginEmail" placeholder="Email" required />
+            <input type="password" name="loginPassword" placeholder="Password" required />
             <button type="submit">Login</button>
             <p>Don't have an account? <a href="register.php">Register</a></p>
         </form>

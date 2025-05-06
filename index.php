@@ -1,3 +1,8 @@
+<?php
+session_start();
+include 'connection/database.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,7 +22,13 @@
                 <li><a href="index.php" class="active">HOME</a></li>
                 <li><a href="shop.php">PRODUCT</a></li>
                 <li><a href="notification.php">NOTIFICATION</a></li>
-                <li><a href="login.php">ACCOUNT</a></li>
+                <li>
+                    <?php if (isset($_SESSION['user'])): ?>
+                        <a href="logout.php">LOGOUT</a>
+                    <?php else: ?>
+                        <a href="login.php">ACCOUNT</a>
+                    <?php endif; ?>
+                </li>
             </ul>
         </div>
         <div class="content">

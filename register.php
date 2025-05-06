@@ -1,3 +1,52 @@
+<?php
+include 'connection/database.php';
+
+$successMessage = '';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register-btn'])) {
+    $firstName = $_POST['firstname'] ?? '';
+    $lastName = $_POST['lastName'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    $birthdate = $_POST['birthdate'] ?? '';
+    $street = $_POST['street'] ?? '';
+    $city = $_POST['city'] ?? '';
+    $zip = $_POST['zip'] ?? '';
+
+    if ($password !== $confirmPassword) {
+        echo "<script>alert('Error: Passwords do not match.'); window.history.back();</script>";
+        exit;
+    }
+
+    $hashedPassword = sha1($password);
+
+    $sql = "INSERT INTO tbl_customers (first_name, last_name, email, password, phone, birthdate, street, city, zip)
+            VALUES (:first_name, :last_name, :email, :password, :phone, :birthdate, :street, :city, :zip)";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':first_name', $firstName);
+    $stmt->bindParam(':last_name', $lastName);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':password', $hashedPassword);
+    $stmt->bindParam(':phone', $phone);
+    $stmt->bindParam(':birthdate', $birthdate);
+    $stmt->bindParam(':street', $street);
+    $stmt->bindParam(':city', $city);
+    $stmt->bindParam(':zip', $zip);
+
+    $stmt->execute();
+
+    // Build message for display
+    $successMessage = "Thank you for registering you can now login, Welcome! $firstName $lastName!<br>
+                      Email: $email<br>
+                      Phone: $phone<br>
+                      Birthdate: $birthdate<br>
+                      Address: $street, $city, $zip";
+}
+?>
+
 <html lang="en">
 
 <head>
@@ -29,6 +78,12 @@
         aria-label="Shopping Registration Form">
         <h1 class="font-semibold text-base mb-1"> Registration Form</h1>
         <p class="text-xs mb-4"> fill out the form below to register.</p>
+
+        <?php if (!empty($successMessage)): ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4 mb-4 max-w-md text-sm">
+                <?= $successMessage ?>
+            </div>
+        <?php endif; ?>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 mb-4">
             <div>
@@ -85,7 +140,7 @@
                     class="block text-[10px] font-semibold mb-1 leading-none">Confirm Password</label>
                 <input
                     id="confirm_password"
-                    name="password"
+                    name="confirm_password"
                     type="text"
                     placeholder=""
                     class="w-full border border-gray-300 rounded px-2 py-1 text-xs placeholder:text-gray-300" />
