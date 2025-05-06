@@ -1,3 +1,14 @@
+<?php
+session_start();
+
+// Check if user is logged in, if not redirect to login page
+if (!isset($_SESSION['admin'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
+?>
+
 <html lang="en">
 
 <head>
@@ -114,7 +125,7 @@
                         <img alt="" class="rounded-full w-8 h-8 object-cover" height="" src="" width="" />
                         <span class="text-sm font-semibold">Jeffrey</span>
                     </div>
-                    <button aria-label="Logout" onclick="window.location.href='register.html'" class="flex items-center w-full text-[#a0b8d6] hover:text-white hover:bg-[#0a1a2e] rounded px-3 py-2">
+                    <button aria-label="Logout" onclick="window.location.href='admin_logout.php'" class="flex items-center w-full text-[#a0b8d6] hover:text-white hover:bg-[#0a1a2e] rounded px-3 py-2">
                         <i class="fas fa-sign-out-alt mr-3 text-[#f0a500]"></i>
                         Logout
                     </button>

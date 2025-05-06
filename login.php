@@ -6,18 +6,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['loginEmail'] ?? '';
     $password = $_POST['loginPassword'] ?? '';
 
-    $sql = "SELECT * FROM tbl_customers WHERE email = :email LIMIT 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':email', $email);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $sql_customer = "SELECT * FROM tbl_customers WHERE email = :email LIMIT 1";
+    $stmt_customer = $conn->prepare($sql_customer);
+    $stmt_customer->bindParam(':email', $email);
+    $stmt_customer->execute();
+    $customer = $stmt_customer->fetch(PDO::FETCH_ASSOC);
 
-    if ($user && sha1($password) === $user['password']) {
-        $_SESSION['user'] = $user; // Store the entire user data in the session
-        header('Location: index.php');
-        exit;
+    if (!$customer) {
+        $sql_admin = "SELECT * FROM tbl_admins WHERE email = :email LIMIT 1";
+        $stmt_admin = $conn->prepare($sql_admin);
+        $stmt_admin->bindParam(':email', $email);
+        $stmt_admin->execute();
+        $admin = $stmt_admin->fetch(PDO::FETCH_ASSOC);
+
+        if ($admin && sha1($password) === $admin['password']) {
+            $_SESSION['admin'] = $admin; // Store the entire admin data in the session
+            header('Location: admin/admin.php'); // Redirect to admin dashboard
+            exit;
+        } else {
+            echo "<script>alert('Invalid email or password'); window.history.back();</script>";
+        }
     } else {
-        echo "<script>alert('Invalid email or password'); window.history.back();</script>";
+        if (sha1($password) === $customer['password']) {
+            $_SESSION['user'] = $customer; // Store the entire customer data in the session
+            header('Location: index.php'); // Redirect to customer homepage
+            exit;
+        } else {
+            echo "<script>alert('Invalid email or password'); window.history.back();</script>";
+        }
     }
 }
 ?>

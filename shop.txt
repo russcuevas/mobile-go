@@ -1,4 +1,4 @@
-tbl_admins
+tbl_admins - check
 email
 password
 
@@ -30,7 +30,7 @@ product_description
 product_price
 product_stocks
 
-tbl_suppliers
+tbl_suppliers - check
 supplier_name
 supplier_contact
 supplier_email
