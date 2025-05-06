@@ -1,191 +1,95 @@
+<?php
+include '../connection/database.php';
+
+$stmt = $conn->prepare("SELECT sales_number, products, payment, amount, status, created_at FROM tbl_sales WHERE status = 'completed'");
+$stmt->execute();
+$sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$total = 0;
+$highest = 0;
+$lowest = null;
+$count = count($sales);
+
+foreach ($sales as $sale) {
+  $amount = floatval($sale['amount']);
+  $total += $amount;
+  if ($amount > $highest) $highest = $amount;
+  if ($lowest === null || $amount < $lowest) $lowest = $amount;
+}
+
+$average = $count > 0 ? $total / $count : 0;
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Online Shop Admin Dashboard</title>
-<style>
-  /* Reset some styles */
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    background: #f4f6f9;
-    color: #333;
-  }
-  header {
-    background: #2a3f54;
-    color: white;
-    padding: 20px 40px;
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-align: center;
-  }
-  .back-button {
-      background-color: transparent;
-      border: 2px solid #ecf0f1;
-      color: #ecf0f1;
-      padding: 6px 14px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      user-select: none;
-      margin-left: 1.5rem;
-      flex-shrink: 0;
-    }
-    .back-button:hover {
-      background-color: #1abc9c;
-      border-color: #1abc9c;
-      color: white;
-    }
-  main {
-    max-width: 1100px;
-    margin: 30px auto;
-    padding: 0 20px;
-  }
-  .dashboard {
-    display: flex;
-    gap: 30px;
-  }
-  .stats {
-    flex: 1;
-    background: #fff;
-    border-radius: 10px;
-    padding: 25px 30px;
-    box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
-  }
-  .stats h2 {
-    margin-top: 0;
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: #444;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #2a3f54;
-    padding-bottom: 8px;
-  }
-  .stat-item {
-    margin-bottom: 25px;
-    font-size: 1.3rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-  }
-  .stat-value {
-    color: #2a3f54;
-    font-size: 1.5rem;
-  }
-  .sales-table-container {
-    flex: 2;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
-    padding: 20px 25px;
-    overflow-x: auto;
-  }
-  .sales-table-container h2 {
-    margin-top: 0;
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: #444;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #2a3f54;
-    padding-bottom: 8px;
-  }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 1rem;
-  }
-  thead {
-    background: #2a3f54;
-    color: white;
-  }
-  th, td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  tr:hover {
-    background-color: #eef3f7;
-  }
-
-  @media (max-width: 900px) {
-    main {
-      margin: 20px 15px;
-      max-width: 100%;
-    }
-    .dashboard {
-      flex-direction: column;
-    }
-    .stats, .sales-table-container {
-      flex: none;
-      width: 100%;
-      margin-bottom: 30px;
-    }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Online Shop Admin Dashboard</title>
+  <link rel="stylesheet" href="assets/css/sales.css">
 </head>
+
 <body>
-<header>Sales Overview</header>
-<button class="back-button" onclick="window.location.href='admin.html';">Back</button>
-<main>
-  <div class="dashboard">
-    <section class="stats" aria-label="Sales Statistics Summary">
-      <h2>Sales Statistics</h2>
-      <div class="stat-item">
-        <span>Total Sales:</span> <span id="totalSales" class="stat-value">$0</span>
-      </div>
-      <div class="stat-item">
-        <span>Highest Sale:</span> <span id="highestSale" class="stat-value">$0</span>
-      </div>
-      <div class="stat-item">
-        <span>Lowest Sale:</span> <span id="lowestSale" class="stat-value">$0</span>
-      </div>
-      <div class="stat-item">
-        <span>Average Sale:</span> <span id="averageSale" class="stat-value">$0</span>
-      </div>
-      <div class="stat-item">
-        <span>Number of Sales:</span> <span id="numSales" class="stat-value">0</span>
-      </div>
-    </section>
 
-    <section class="sales-table-container" aria-label="Sales Table">
-      <h2>Sales Detail</h2>
-      <table id="salesTable" aria-describedby="salesTableDesc">
-        <thead>
-          <tr>
-            <th>Sale ID</th>
-            <th>Product</th>
-            <th>Payment</th>
-            <th>Amount </th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- No sales data available -->
-        </tbody>
-      </table>
-      <p id="salesTableDesc" class="sr-only">Table showing sales ID, product name, category, amount sold, and sale date</p>
-    </section>
-  </div>
-</main>
-<script>
- // No sales data to populate
- function formatCurrency(value) {
-    return value.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
-  }
+  <header>Sales Overview</header>
+  <button class="back-button" onclick="window.location.href='admin.html';">Back</button>
 
-  // Populate UI with default values
-  document.getElementById('totalSales').textContent = formatCurrency(0);
-  document.getElementById('highestSale').textContent = formatCurrency(0);
-  document.getElementById('lowestSale').textContent = formatCurrency(0);
-  document.getElementById('averageSale').textContent = formatCurrency(0);
-  document.getElementById('numSales').textContent = 0;
-</script>
+  <main>
+    <div class="dashboard">
+      <section class="stats" aria-label="Sales Statistics Summary">
+        <h2>Sales Statistics</h2>
+        <div class="stat-item">
+          <span>Total Sales:</span> <span id="totalSales" class="stat-value">₱<?= number_format($total, 2) ?></span>
+        </div>
+        <div class="stat-item">
+          <span>Highest Sale:</span> <span id="highestSale" class="stat-value">₱<?= number_format($highest, 2) ?></span>
+        </div>
+        <div class="stat-item">
+          <span>Lowest Sale:</span> <span id="lowestSale" class="stat-value">₱<?= number_format($lowest, 2) ?></span>
+        </div>
+        <div class="stat-item">
+          <span>Average Sale:</span> <span id="averageSale" class="stat-value">₱<?= number_format($average, 2) ?></span>
+        </div>
+        <div class="stat-item">
+          <span>Number of Sales:</span> <span id="numSales" class="stat-value"><?= $count ?></span>
+        </div>
+      </section>
+
+      <section class="sales-table-container" aria-label="Sales Table">
+        <h2>Sales Detail</h2>
+        <table id="salesTable" aria-describedby="salesTableDesc">
+          <thead>
+            <tr>
+              <th>Sale ID</th>
+              <th>Product</th>
+              <th>Payment</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if ($count > 0): ?>
+              <?php foreach ($sales as $sale): ?>
+                <tr>
+                  <td><?= htmlspecialchars($sale['sales_number']) ?></td>
+                  <td><?= htmlspecialchars($sale['products']) ?></td>
+                  <td><?= htmlspecialchars($sale['payment']) ?></td>
+                  <td>₱<?= number_format($sale['amount'], 2) ?></td>
+                  <td><?= htmlspecialchars(date('Y-m-d', strtotime($sale['created_at']))) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="5">No sales data available.</td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
 </body>
+
 </html>

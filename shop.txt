@@ -19,7 +19,7 @@ product_price
 product_description
 product_link
 
-tbl_carts
+tbl_carts - check
 products_id -> foreign to tbl_products -> id
 customers_id -> foreign to tbl_customers -> id
 quantity
@@ -49,10 +49,11 @@ request_date
 lead_time
 expected_delivery
 
-tbl_orders
+tbl_orders - check
 order_number
 customers_id
 products_id
+total_price
 status
 
 tbl_sales
