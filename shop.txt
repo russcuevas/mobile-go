@@ -56,11 +56,12 @@ products_id
 total_price
 status
 
-tbl_sales
+tbl_sales - check
 sales_number
 products
 payment
 amount
+status
 created_at
 
 tbl_receiving_items
