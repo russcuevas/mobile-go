@@ -1,6 +1,13 @@
 <?php
-// Include database connection
+session_start();
+
+// Check if user is logged in, if not redirect to login page
+if (!isset($_SESSION['admin'])) {
+    header('Location: ../login.php');
+    exit;
+}
 include '../connection/database.php';
+
 
 // Fetch orders and their total price
 $stmt = $conn->prepare("
