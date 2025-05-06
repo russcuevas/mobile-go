@@ -1,3 +1,25 @@
+<?php
+include '../connection/database.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['supplierName'];
+    $contact = $_POST['supplierContact'];
+    $email = $_POST['supplierEmail'];
+    $address = $_POST['supplierAddress'];
+
+    $stmt = $conn->prepare("INSERT INTO tbl_suppliers (supplier_name, supplier_contact, supplier_email, supplier_address) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$name, $contact, $email, $address]);
+
+    echo "<script>alert('Supplier added successfully.'); window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+    exit;
+}
+
+// Fetch suppliers from the database
+$stmt = $conn->prepare("SELECT * FROM tbl_suppliers");
+$stmt->execute();
+$suppliers = $stmt->fetchAll();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,279 +27,99 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Online Shopping Admin - Suppliers</title>
+    <link rel="stylesheet" href="assets/css/supplier.css">
+
     <style>
-        /* Reset and base */
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f3f6f9;
-            color: #333;
-            max-width: 960px;
-            margin-left: auto;
-            margin-right: auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background-color: #007bff;
-            color: white;
-            padding: 1.25rem 2rem;
-            font-size: 1.75rem;
-            font-weight: 700;
-            text-align: center;
-            flex-shrink: 0;
-            user-select: none;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            /* Distance from the top */
-            left: 20px;
-            /* Distance from the left */
-            background-color: #0d6efd;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .back-button:hover {
-            background-color: #084aec;
-        }
-
-        main {
-            flex-grow: 1;
-            padding: 1.5rem 2rem;
-            overflow: auto;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-
-        h1 {
-            margin: 0 0 1.5rem 0;
-            font-size: 2rem;
-            text-align: center;
-        }
-
-        /* Table styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background-color: #007bff;
-            color: white;
-        }
-
-        th,
-        td {
-            padding: 0.8rem 1rem;
-            text-align: left;
-            font-size: 1rem;
-            border-bottom: 1px solid #ddd;
-        }
-
-        tbody tr:hover {
-            background: #e9f0ff;
-        }
-
-        /* Buttons */
-        button {
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.35rem;
-            transition: background-color 0.3s ease;
-            user-select: none;
-            min-width: 65px;
-        }
-
-        button:focus {
-            outline: 3px solid #0056b3;
-            outline-offset: 2px;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-        .btn-warning {
-            background-color: #ffc107;
-            color: #212529;
-        }
-
-        .btn-warning:hover {
-            background-color: #cc9a06;
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #a71d2a;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #545b62;
-        }
-
-        /* Controls container */
-        .controls {
-            margin-bottom: 1.25rem;
-            text-align: right;
-        }
-
-        /* Modal styles */
+        /* Modal Overlay - covers the entire screen */
         .modal-overlay {
+            display: none;
+            /* Hidden by default */
             position: fixed;
+            /* Fixed positioning */
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent background */
             justify-content: center;
             align-items: center;
             z-index: 999;
-            padding: 2rem;
+            /* Ensures it's on top of other content */
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
-
+        /* Modal Content */
         .modal {
-            background: white;
-            border-radius: 0.6rem;
-            width: 100%;
-            max-width: 480px;
-            max-height: 85%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 500px;
+            /* Set the width of the modal */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-height: 80%;
+            /* Optional: limit max height of modal */
             overflow-y: auto;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            padding: 2rem 2.5rem;
-            display: flex;
-            flex-direction: column;
+            /* Allows scrolling if content is long */
         }
 
+        /* Modal Header */
         .modal h2 {
             margin-top: 0;
-            margin-bottom: 1.5rem;
-            font-size: 1.7rem;
-            color: #007bff;
-            font-weight: 700;
         }
 
+        /* Close Button (Cancel) */
+        .btn-secondary {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* Save Button */
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* Align the form elements */
         .form-group {
-            margin-bottom: 1rem;
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 15px;
         }
 
-        label {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            font-size: 1.05rem;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
         }
 
-        input,
-        textarea {
-            font-size: 1rem;
-            padding: 0.6rem 0.75rem;
-            border: 1.5px solid #ccc;
-            border-radius: 0.4rem;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-        }
-
-        input:focus,
-        textarea:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-
-        textarea {
-            min-height: 90px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        /* Validation error messages */
-        .error-message {
-            color: #dc3545;
-            font-size: 0.9rem;
-            margin-top: 0.25rem;
-            display: none;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 480px) {
-            body {
-                max-width: 100vw;
-                min-height: 100vh;
-            }
-
-            main {
-                margin: 1rem;
-                padding: 1rem;
-                box-shadow: none;
-                border-radius: 0;
-            }
-
-            .modal {
-                max-width: 95vw;
-                padding: 1.5rem 1.75rem;
-                max-height: 90vh;
-            }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
-    <header> Suppliers</header>
+    <header>Suppliers</header>
     <button class="back-button" onclick="window.location.href='admin.php';">Back</button>
     <main>
         <div class="controls">
-            <button class="btn-primary" id="btnAddSupplier" aria-label="Add supplier">+ Add Supplier</button>
+            <button class="btn-primary" id="btnAddSupplier" aria-label="Add supplier" style="background-color: blue;">+ Add Supplier</button>
         </div>
         <table aria-label="Suppliers information table" role="grid" aria-describedby="tableSummary">
             <caption id="tableSummary"
-                style="text-align:left; padding: 0 0 0.5rem 0; font-weight: 600; font-size: 1.1rem; color:#555;">List of
-                suppliers with contact details</caption>
+                style="text-align:left; padding: 0 0 0.5rem 0; font-weight: 600; font-size: 1.1rem; color:#555;">
+                List of suppliers with contact details
+            </caption>
             <thead>
                 <tr role="row">
                     <th role="columnheader" scope="col">Name</th>
@@ -288,18 +130,40 @@
                 </tr>
             </thead>
             <tbody id="suppliersTableBody" role="rowgroup">
-                <!-- Suppliers data goes here -->
+                <?php foreach ($suppliers as $supplier): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
+                        <td><?php echo htmlspecialchars($supplier['supplier_contact']); ?></td>
+                        <td><?php echo htmlspecialchars($supplier['supplier_email']); ?></td>
+                        <td><?php echo htmlspecialchars($supplier['supplier_address']); ?></td>
+                        <td>
+                            <a href="javascript:void(0)" onclick="viewSupplier(<?php echo $supplier['supplier_id']; ?>)">View</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </main>
 
-    <!-- Modal for add/edit supplier -->
-    <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
-        tabindex="-1">
+    <!-- Modal for Viewing Supplier -->
+    <div class="modal-overlay" id="viewModalOverlay" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle" tabindex="-1">
+        <div class="modal" role="document">
+            <h2 id="viewModalTitle">Supplier Details</h2>
+            <div id="supplierDetails">
+                <!-- Supplier details will be injected here by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="btnClose">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add Supplier -->
+    <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
         <div class="modal" role="document">
             <h2 id="modalTitle">Add Supplier</h2>
-            <form id="supplierForm" novalidate>
-                <input type="hidden" id="supplierId" />
+            <form id="supplierForm" method="POST" action="" novalidate>
+                <input type="hidden" id="supplierId" name="supplierId" />
                 <div class="form-group">
                     <label for="supplierName">Name <span aria-hidden="true" style="color:#dc3545;">*</span></label>
                     <input type="text" id="supplierName" name="supplierName" required maxlength="50" autocomplete="off" />
@@ -307,8 +171,7 @@
                 </div>
                 <div class="form-group">
                     <label for="supplierContact">Contact Number <span aria-hidden="true" style="color:#dc3545;">*</span></label>
-                    <input type="tel" id="supplierContact" name="supplierContact" required pattern="^[0-9+\-\s()]{6,20}$"
-                        autocomplete="off" />
+                    <input type="tel" id="supplierContact" name="supplierContact" required pattern="^[0-9+\-\s()]{6,20}$" autocomplete="off" />
                     <span class="error-message" aria-live="polite">Please enter a valid contact number.</span>
                 </div>
                 <div class="form-group">
@@ -328,6 +191,41 @@
         </div>
     </div>
 
+    <script>
+        // Show the modal when "Add Supplier" is clicked
+        document.getElementById('btnAddSupplier').addEventListener('click', function() {
+            document.getElementById('modalOverlay').style.display = 'flex'; // Changed to 'flex' for centering
+        });
+
+        // Close the modal when the "Cancel" button is clicked
+        document.getElementById('btnCancel').addEventListener('click', function() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        });
+
+        // Show supplier details in modal
+        function viewSupplier(supplierId) {
+            // Fetch supplier details via AJAX
+            fetch('get_supplier_details.php?id=' + supplierId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        const supplierDetails = `
+                            <p><strong>Name:</strong> ${data.supplier_name}</p>
+                            <p><strong>Contact:</strong> ${data.supplier_contact}</p>
+                            <p><strong>Email:</strong> ${data.supplier_email}</p>
+                            <p><strong>Address:</strong> ${data.supplier_address}</p>
+                        `;
+                        document.getElementById('supplierDetails').innerHTML = supplierDetails;
+                        document.getElementById('viewModalOverlay').style.display = 'flex';
+                    }
+                });
+        }
+
+        // Close the view modal
+        document.getElementById('btnClose').addEventListener('click', function() {
+            document.getElementById('viewModalOverlay').style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

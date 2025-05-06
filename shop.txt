@@ -24,7 +24,7 @@ products_id -> foreign to tbl_products -> id
 customers_id -> foreign to tbl_customers -> id
 quantity
 
-tbl_records
+tbl_records - check
 product_name
 product_description
 product_price

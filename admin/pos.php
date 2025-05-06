@@ -33,7 +33,7 @@ $average = $count > 0 ? $total / $count : 0;
 <body>
 
   <header>Sales Overview</header>
-  <button class="back-button" onclick="window.location.href='admin.html';">Back</button>
+  <button class="back-button" onclick="window.location.href='admin.php';">Back</button>
 
   <main>
     <div class="dashboard">
