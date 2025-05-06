@@ -39,13 +39,14 @@ $total = 0;
 <body>
     <div class="container">
         <header>
-            <h1>Order Notification</h1>
-            <h2>Thank you for your purchase!</h2>
+            <h1>Track your order</h1>
         </header>
 
         <section id="order-notification">
             <?php if (!empty($order_details)): ?>
-                <h2>Your Order Details:</h2>
+                <h2>Your Order Details ( <?= htmlspecialchars($order_details[0]['status']) ?> )</h2>
+                <br>
+                <br>
                 <p><strong>Order Number:</strong> <?= htmlspecialchars($order_number) ?></p>
 
                 <!-- Customer Information -->
@@ -81,14 +82,14 @@ $total = 0;
                 <p>No recent orders found.</p>
             <?php endif; ?>
 
-            <button onclick="goToHome()">Go to Home</button>
+            <button onclick="goToHome()">Go back</button>
         </section>
     </div>
 
     <script>
         // Redirect to home page
         function goToHome() {
-            window.location.href = "index.php"; // or any other home page
+            window.location.href = "notification_table.php"; // or any other home page
         }
     </script>
 

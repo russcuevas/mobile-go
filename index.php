@@ -21,7 +21,7 @@ include 'connection/database.php';
             <ul class="menu">
                 <li><a href="index.php" class="active">HOME</a></li>
                 <li><a href="shop.php">PRODUCT</a></li>
-                <li><a href="notification.php">NOTIFICATION</a></li>
+                <li><a href="notification_table.php">NOTIFICATION</a></li>
                 <li>
                     <?php if (isset($_SESSION['user'])): ?>
                         <a href="logout.php">LOGOUT</a>

@@ -53,6 +53,45 @@ if (isset($_SESSION['user'])) {
     $cart_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
+    $customer_id = $_SESSION['user']['id'];
+
+    // Generate a unique order number
+    $order_number = strtoupper(uniqid('ORD-'));
+
+    // Fetch cart items again
+    $stmt = $conn->prepare("SELECT * FROM tbl_carts WHERE customer_id = :customer_id");
+    $stmt->bindParam(':customer_id', $customer_id);
+    $stmt->execute();
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!empty($items)) {
+        foreach ($items as $item) {
+            $product_id = $item['product_id'];
+
+            // Insert each item into tbl_orders
+            $insert = $conn->prepare("INSERT INTO tbl_orders (order_number, customers_id, products_id, status)
+                                      VALUES (:order_number, :customer_id, :product_id, 'pending')");
+            $insert->bindParam(':order_number', $order_number);
+            $insert->bindParam(':customer_id', $customer_id);
+            $insert->bindParam(':product_id', $product_id);
+            $insert->execute();
+        }
+
+        // Clear the user's cart after checkout
+        $delete = $conn->prepare("DELETE FROM tbl_carts WHERE customer_id = :customer_id");
+        $delete->bindParam(':customer_id', $customer_id);
+        $delete->execute();
+
+        echo "<script>alert('Order placed successfully!'); window.location.href='notification.php?order_number=$order_number';</script>";
+        exit;
+    } else {
+        echo "<script>alert('Your cart is empty.'); window.history.back();</script>";
+        exit;
+    }
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -165,7 +204,9 @@ if (isset($_SESSION['user'])) {
             <div id="total-amount">Total: ₱ <?= number_format($total, 2) ?></div>
             <div class="cart-actions">
                 <button class="close"><a href="shop.php">CLOSE</a></button>
-                <button class="checkOut"><a href="notification.php">Check Out</a></button>
+                <form method="POST" action="shop.php">
+                    <button type="submit" name="checkout" class="checkOut">Check Out</button>
+                </form>
             </div>
         </div>
     </div>
