@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+// Check if user is logged in, if not redirect to login page
+if (!isset($_SESSION['admin'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
 include '../connection/database.php';
 
 if (isset($_POST['item_name'])) {
