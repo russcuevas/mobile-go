@@ -7,9 +7,17 @@ use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
 
-// Fetch products from the database
-$stmt = $conn->query("SELECT * FROM tbl_products ORDER BY id DESC");
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+if ($search !== '') {
+    $stmt = $conn->prepare("SELECT * FROM tbl_products WHERE product_name LIKE :search ORDER BY id DESC");
+    $search_term = '%' . $search . '%';
+    $stmt->bindParam(':search', $search_term);
+    $stmt->execute();
+} else {
+    $stmt = $conn->query("SELECT * FROM tbl_products ORDER BY id DESC");
+}
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // Add to cart logic
 if (isset($_POST['add_to_cart'])) {
@@ -182,8 +190,128 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
     <style>
         .products {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card .img {
+            width: 100%;
+            height: 200px;
+            background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card .img img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .card .img img:hover {
+            transform: scale(1.05);
+        }
+
+        .card .title {
+            font-size: 1.1rem;
+            font-weight: 900 !important;
+            color: #333 !important;
+            margin: 10px;
+            text-align: center;
+            min-height: 48px;
+        }
+
+        .card .box {
+            padding: 10px 15px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .price {
+            font-size: 1rem;
+            color: orangered !important;
+            font-weight: 900;
+            margin-right: 180px;
+        }
+
+        .quantity-input {
+            width: 93%;
+            padding: 8px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #2980b9;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            width: 250px !important;
+        }
+
+        .btn:hover {
+            background-color: #2471a3;
+        }
+
+
+
+        .search-bar {
+            display: flex;
+            justify-content: flex-start;
+            /* Align items to the start */
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            width: 60%;
+            /* Adjust width as needed */
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            /* Space between input and buttons */
+        }
+
+        .search-bar button {
+            padding: 10px 15px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            background-color: #2471a3;
         }
     </style>
 </head>
@@ -207,6 +335,12 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
     </div>
 
     <section class="sec">
+        <div class="search-bar">
+            <form method="GET" action="shop.php" style="display: flex; width: 100%;">
+                <input type="text" name="search" placeholder="Search products..." value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>" />
+                <button type="submit">Search</button>
+            </form>
+        </div>
         <div class="products">
             <?php if (!empty($products)): ?>
                 <?php foreach ($products as $product): ?>
@@ -220,11 +354,12 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
                         </div>
                         <div class="title"><?= htmlspecialchars($product['product_name']) ?></div>
                         <div class="box">
-                            <div class="price">php <?= number_format($product['product_price'], 2) ?></div>
-                            <form method="POST" action="shop.php">
+                            <div class="price">₱<?= number_format($product['product_price'], 2) ?></div>
+                            <form method="POST" action="shop.php" class="add-to-cart-form">
                                 <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                                <input type="hidden" name="quantity" value="1" min="1" required>
-                                <button type="submit" name="add_to_cart" class="btn">Add to cart</button>
+                                <label for="quantity-<?= $product['id'] ?>">Quantity:</label>
+                                <input type="number" name="quantity" id="quantity-<?= $product['id'] ?>" value="1" min="1" max="100" required class="quantity-input" />
+                                <button type="submit" name="add_to_cart" class="btn">Add to Cart</button>
                             </form>
                         </div>
                     </div>
@@ -232,6 +367,7 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
             <?php else: ?>
                 <p style="text-align: center; font-size: 50px; color: red; background-color: white; padding: 20px;">No products available.</p>
             <?php endif; ?>
+
         </div>
     </section>
 
