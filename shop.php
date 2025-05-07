@@ -2,6 +2,11 @@
 session_start();
 include 'connection/database.php';
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'vendor/autoload.php';
+
 // Fetch products from the database
 $stmt = $conn->query("SELECT * FROM tbl_products ORDER BY id DESC");
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -44,9 +49,10 @@ if (isset($_POST['add_to_cart'])) {
 $cart_items = [];
 if (isset($_SESSION['user'])) {
     $customer_id = $_SESSION['user']['id'];
+    // Fetch cart items with product details (LEFT JOIN to avoid missing product data)
     $stmt = $conn->prepare("SELECT c.id, c.quantity, p.product_name, p.product_price 
                             FROM tbl_carts c
-                            JOIN tbl_products p ON c.product_id = p.id
+                            LEFT JOIN tbl_products p ON c.product_id = p.id
                             WHERE c.customer_id = :customer_id");
     $stmt->bindParam(':customer_id', $customer_id);
     $stmt->execute();
@@ -59,38 +65,109 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
     // Generate a unique order number
     $order_number = strtoupper(uniqid('ORD-'));
 
-    // Fetch cart items again
-    $stmt = $conn->prepare("SELECT * FROM tbl_carts WHERE customer_id = :customer_id");
+    // Fetch cart items with product details
+    $stmt = $conn->prepare("SELECT c.id, c.quantity, p.product_name, p.product_price, p.id as product_id 
+                            FROM tbl_carts c
+                            LEFT JOIN tbl_products p ON c.product_id = p.id
+                            WHERE c.customer_id = :customer_id");
     $stmt->bindParam(':customer_id', $customer_id);
     $stmt->execute();
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (!empty($items)) {
-        foreach ($items as $item) {
-            $product_id = $item['product_id'];
+        // Prepare email content
+        $email_body = "<h2>Your Order Details</h2>";
+        $email_body = "<h2>COD PAYMENT</h2>";
+        $email_body .= "<p><strong>Order Number:</strong> $order_number</p>";
+        $email_body .= "<table border='1' cellpadding='5' cellspacing='0'>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                            </tr>";
 
-            // Insert each item into tbl_orders
-            $insert = $conn->prepare("INSERT INTO tbl_orders (order_number, customers_id, products_id, status)
-                                      VALUES (:order_number, :customer_id, :product_id, 'pending')");
-            $insert->bindParam(':order_number', $order_number);
-            $insert->bindParam(':customer_id', $customer_id);
-            $insert->bindParam(':product_id', $product_id);
-            $insert->execute();
+        $total_price = 0;
+        foreach ($items as $item) {
+            if (!$item['product_name'] || !$item['product_price']) {
+                continue;
+            }
+
+            $product_name = htmlspecialchars($item['product_name']);
+            $product_price = number_format($item['product_price'], 2);
+            $quantity = $item['quantity'];
+            $total_price += $item['product_price'] * $quantity;
+
+            $email_body .= "<tr>
+                                <td>$product_name</td>
+                                <td>₱$product_price</td>
+                                <td>$quantity</td>
+                            </tr>";
         }
 
-        // Clear the user's cart after checkout
-        $delete = $conn->prepare("DELETE FROM tbl_carts WHERE customer_id = :customer_id");
-        $delete->bindParam(':customer_id', $customer_id);
-        $delete->execute();
+        $email_body .= "</table>";
+        $email_body .= "<h3>Total Price: ₱" . number_format($total_price, 2) . "</h3>";
 
-        echo "<script>alert('Order placed successfully!'); window.location.href='notification.php?order_number=$order_number';</script>";
+        // Fetch user details to send the email
+        $stmt = $conn->prepare("SELECT * FROM tbl_customers WHERE id = :customer_id");
+        $stmt->bindParam(':customer_id', $customer_id);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Create PHPMailer instance
+        $mail = new PHPMailer(true);
+
+        try {
+            //Server settings
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
+            $mail->SMTPAuth = true;
+            $mail->Username = 'crisismanagement001@gmail.com'; // SMTP username
+            $mail->Password = 'esbtdkbkszzputyq'; // SMTP password
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+
+            // Recipients
+            $mail->setFrom('mobilego@gmail.com', 'Mobile Go');
+            $mail->addAddress($user['email']); // User's email address
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Order Confirmation - ' . $order_number;
+            $mail->Body = $email_body;
+
+            // Send the email
+            $mail->send();
+
+            // After email is sent successfully, proceed with inserting the order and clearing the cart
+            // Insert each item into tbl_orders
+            foreach ($items as $item) {
+                $product_id = $item['product_id'];
+
+                // Insert into tbl_orders table
+                $insert = $conn->prepare("INSERT INTO tbl_orders (order_number, customers_id, products_id, status)
+                                          VALUES (:order_number, :customer_id, :product_id, 'pending')");
+                $insert->bindParam(':order_number', $order_number);
+                $insert->bindParam(':customer_id', $customer_id);
+                $insert->bindParam(':product_id', $product_id);
+                $insert->execute();
+            }
+
+            // Clear the user's cart after checkout
+            $delete = $conn->prepare("DELETE FROM tbl_carts WHERE customer_id = :customer_id");
+            $delete->bindParam(':customer_id', $customer_id);
+            $delete->execute();
+
+            // Redirect to the notification page with the order number
+            echo "<script>alert('Order placed successfully! An email confirmation has been sent.'); window.location.href='notification.php?order_number=$order_number';</script>";
+        } catch (Exception $e) {
+            echo "<script>alert('There was an error sending the confirmation email. Please try again later.'); window.location.href='notification.php?order_number=$order_number';</script>";
+        }
         exit;
     } else {
         echo "<script>alert('Your cart is empty.'); window.history.back();</script>";
         exit;
     }
 }
-
 
 ?>
 
@@ -251,7 +328,6 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
             }
         });
     </script>
-
 </body>
 
 </html>

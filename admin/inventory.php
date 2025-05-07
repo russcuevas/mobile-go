@@ -129,15 +129,25 @@ include '../connection/database.php';
             </table>
         </section>
 
+        <?php
+        // Fetch items for dropdowns
+        $stmtItems = $conn->prepare("SELECT id, item_name FROM tbl_receiving_items");
+        $stmtItems->execute();
+        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+        ?>
+
 
         <section id="sales" class="tab-content" role="tabpanel" aria-labelledby="tab-sales" hidden>
             <h2>Sales</h2>
-            <form id="salesForm" aria-label="Form to log sales">
+            <form id="salesForm" aria-label="Form to log sales" method="POST" action="add_sales.php">
                 <div>
                     <label for="sales-item">Select Item</label>
                     <select id="sales-item" name="item" required>
-                        <!-- Options dynamically populated -->
+                        <?php foreach ($items as $item): ?>
+                            <option value="<?= $item['id'] ?>"><?= htmlspecialchars($item['item_name']) ?></option>
+                        <?php endforeach; ?>
                     </select>
+
                 </div>
                 <div>
                     <label for="sales-qty">Quantity Sold</label>
@@ -150,12 +160,15 @@ include '../connection/database.php';
 
         <section id="damage" class="tab-content" role="tabpanel" aria-labelledby="tab-damage" hidden>
             <h2>Damage</h2>
-            <form id="damageForm" aria-label="Form to log damaged items">
+            <form id="damageForm" aria-label="Form to log damaged items" action="add_damage.php" method="POST">
                 <div>
                     <label for="damage-item">Select Item</label>
                     <select id="damage-item" name="item" required>
-                        <!-- Options dynamically populated -->
+                        <?php foreach ($items as $item): ?>
+                            <option value="<?= $item['id'] ?>"><?= htmlspecialchars($item['item_name']) ?></option>
+                        <?php endforeach; ?>
                     </select>
+
                 </div>
                 <div>
                     <label for="damage-qty">Quantity Damaged</label>
@@ -180,22 +193,48 @@ include '../connection/database.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- damage log -->
+                    <?php
+                    $stmt = $conn->prepare("
+                        SELECT d.id, d.quantity_damage, d.reason, d.created_at, r.item_name
+                        FROM tbl_damage d
+                        JOIN tbl_receiving_items r ON d.products_receiving_id = r.id
+                        ORDER BY d.created_at DESC
+                    ");
+                    $stmt->execute();
+                    $damageLogs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($damageLogs as $log): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($log['item_name']) ?></td>
+                            <td><?= intval($log['quantity_damage']) ?></td>
+                            <td><?= htmlspecialchars($log['reason']) ?></td>
+                            <td><?= htmlspecialchars($log['created_at']) ?></td>
+                            <td>
+                                <form method="POST" action="remove_damage.php" style="display:inline;">
+                                    <input type="hidden" name="damage_id" value="<?= $log['id'] ?>">
+                                    <button type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </section>
 
         <section id="obsolete" class="tab-content" role="tabpanel" aria-labelledby="tab-obsolete" hidden>
             <h2>Obsolete Items</h2>
-            <form id="obsoleteForm" aria-label="Form to mark items as obsolete">
+            <form id="obsoleteForm" aria-label="Form to mark items as obsolete" method="POST" action="add_obsolete.php">
                 <div>
                     <label for="obsolete-item">Select Item</label>
                     <select id="obsolete-item" name="item" required>
-                        <!-- Options dynamically populated -->
+                        <?php foreach ($items as $item): ?>
+                            <option value="<?= $item['id'] ?>"><?= htmlspecialchars($item['item_name']) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <button type="submit">Mark as Obsolete</button>
             </form>
+
             <div class="message" id="obsoleteMessage"></div>
             <h3>Obsolete Items List</h3>
             <table aria-label="List of obsolete items" id="obsoleteTable">
@@ -207,7 +246,28 @@ include '../connection/database.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- obsolete items -->
+                    <?php
+                    $stmt = $conn->prepare("
+                        SELECT o.id, r.item_name, o.marked_on
+                        FROM tbl_obsolete o
+                        JOIN tbl_receiving_items r ON o.products_receiving_id = r.id
+                        ORDER BY o.marked_on DESC
+                    ");
+                    $stmt->execute();
+                    $obsoleteItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($obsoleteItems as $row): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['item_name']) ?></td>
+                            <td><?= date('F j, Y - g:i A', strtotime($row['marked_on'])) ?></td>
+                            <td>
+                                <form method="POST" action="remove_obsolete.php" style="display:inline;">
+                                    <input type="hidden" name="obsolete_id" value="<?= $row['id'] ?>">
+                                    <button type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </section>

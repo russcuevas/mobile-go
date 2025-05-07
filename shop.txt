@@ -64,7 +64,7 @@ request_date
 lead_time
 expected_delivery
 
-tbl_receiving_items
+tbl_receiving_items - check
 item_name
 quantity
 critical_level
@@ -72,7 +72,12 @@ back_order
 mark_received
 
 
-tbl_damage
+tbl_sales_received - check
+products_receiving_id -> foreign tbl_receiving_items id
+quantity
+
+
+tbl_damage - check
 products_receiving_id -> foreign tbl_receiving_items id
 quantity_damage
 reason
