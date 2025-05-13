@@ -77,8 +77,16 @@ $total = 0;
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-                <p><strong>Total Amount:</strong> ₱<?= number_format($total, 2) ?></p>
-            <?php else: ?>
+                <?php
+                $total_price = 0;
+                foreach ($order_details as $item) {
+                    if ($item['total_price'] > 0) {
+                        $total_price = $item['total_price'];
+                        break;
+                    }
+                }
+                ?>
+                <p><strong>Total Amount:</strong> ₱<?= number_format($total_price, 2) ?></p> <?php else: ?>
                 <p>No recent orders found.</p>
             <?php endif; ?>
 

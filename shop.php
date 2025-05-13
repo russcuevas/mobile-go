@@ -96,6 +96,7 @@ if (isset($_SESSION['user'])) {
 
 if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
     $customer_id = $_SESSION['user']['id'];
+    $total_price = isset($_POST['total_price']) ? floatval($_POST['total_price']) : 0;
 
     // Generate a unique order number
     $order_number = strtoupper(uniqid('ORD-'));
@@ -175,12 +176,19 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
 
             // After email is sent successfully, proceed with inserting the order and clearing the cart
             // Insert each item into tbl_orders
-            foreach ($items as $item) {
+            foreach ($items as $index => $item) {
                 $product_id = $item['product_id'];
 
-                // Insert into tbl_orders table
-                $insert = $conn->prepare("INSERT INTO tbl_orders (order_number, customers_id, products_id, status)
-                                          VALUES (:order_number, :customer_id, :product_id, 'pending')");
+                // Include total_price only once per order (first item row)
+                if ($index === 0) {
+                    $insert = $conn->prepare("INSERT INTO tbl_orders (order_number, customers_id, products_id, status, total_price)
+                                              VALUES (:order_number, :customer_id, :product_id, 'pending', :total_price)");
+                    $insert->bindParam(':total_price', $total_price);
+                } else {
+                    $insert = $conn->prepare("INSERT INTO tbl_orders (order_number, customers_id, products_id, status, total_price)
+                                              VALUES (:order_number, :customer_id, :product_id, 'pending', 0)");
+                }
+
                 $insert->bindParam(':order_number', $order_number);
                 $insert->bindParam(':customer_id', $customer_id);
                 $insert->bindParam(':product_id', $product_id);
@@ -466,6 +474,7 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
             <div class="cart-actions">
                 <button class="close"><a href="shop.php">CLOSE</a></button>
                 <form method="POST" action="shop.php">
+                    <input type="text" name="total_price" value="<?= number_format($total, 2) ?>">
                     <button type="submit" name="checkout" class="checkOut">Check Out</button>
                 </form>
             </div>

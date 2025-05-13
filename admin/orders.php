@@ -19,7 +19,12 @@ $stmt = $conn->prepare("
         c.city, 
         c.zip,
         GROUP_CONCAT(p.product_name) AS product_names,
-        SUM(p.product_price) AS total_price,
+        (
+            SELECT total_price 
+            FROM tbl_orders 
+            WHERE order_number = o.order_number AND total_price > 0 
+            LIMIT 1
+        ) AS total_price,
         o.status
     FROM 
         tbl_orders o
