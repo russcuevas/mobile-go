@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 07, 2025 at 02:33 PM
+-- Generation Time: May 13, 2025 at 06:02 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -125,8 +125,17 @@ CREATE TABLE `tbl_products` (
   `product_name` varchar(255) NOT NULL,
   `product_price` decimal(10,2) NOT NULL,
   `product_description` text DEFAULT NULL,
-  `product_link` text DEFAULT NULL
+  `product_link` text DEFAULT NULL,
+  `product_stocks` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_products`
+--
+
+INSERT INTO `tbl_products` (`id`, `product_name`, `product_price`, `product_description`, `product_link`, `product_stocks`) VALUES
+(9, 'Headphone', '50.00', 'Color white', 'https://tse4.mm.bing.net/th?id=OIP.RZjRvaO9IfDAwpD20I7e5wHaHa&pid=Api&P=0&h=180', 22),
+(10, 'Keyboard', '150.00', 'Color Black', 'https://tse4.mm.bing.net/th?id=OIP._QPFrccrbRCBl9eIlJvE0QHaEK&pid=Api&P=0&h=180', 13);
 
 -- --------------------------------------------------------
 
@@ -342,79 +351,79 @@ ALTER TABLE `tbl_admins`
 -- AUTO_INCREMENT for table `tbl_carts`
 --
 ALTER TABLE `tbl_carts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `tbl_customers`
 --
 ALTER TABLE `tbl_customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `tbl_damage`
 --
 ALTER TABLE `tbl_damage`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `tbl_obsolete`
 --
 ALTER TABLE `tbl_obsolete`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `tbl_orders`
 --
 ALTER TABLE `tbl_orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `tbl_products`
 --
 ALTER TABLE `tbl_products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `tbl_purchase_lead`
 --
 ALTER TABLE `tbl_purchase_lead`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tbl_purchase_suppliers`
 --
 ALTER TABLE `tbl_purchase_suppliers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `tbl_receiving_items`
 --
 ALTER TABLE `tbl_receiving_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `tbl_records`
 --
 ALTER TABLE `tbl_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tbl_sales`
 --
 ALTER TABLE `tbl_sales`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `tbl_sales_receiving`
 --
 ALTER TABLE `tbl_sales_receiving`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `tbl_suppliers`
 --
 ALTER TABLE `tbl_suppliers`
-  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
