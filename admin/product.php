@@ -37,16 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price = $_POST['productPrice'] ?? 0;
     $description = $_POST['productDescription'] ?? '';
     $link = $_POST['productImageUrl'] ?? '';
+    $stocks = $_POST['productStocks'] ?? 0;
 
-    if (!empty($name) && $price > 0) {
-        $stmt = $conn->prepare("INSERT INTO tbl_products (product_name, product_price, product_description, product_link) VALUES (:name, :price, :description, :link)");
+    if (!empty($name) && $price > 0 && $stocks >= 0) {
+        $stmt = $conn->prepare("INSERT INTO tbl_products (product_name, product_price, product_description, product_link, product_stocks) VALUES (:name, :price, :description, :link, :stocks)");
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':price', $price);
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':link', $link);
+        $stmt->bindParam(':stocks', $stocks);
         $stmt->execute();
 
-        // Build message for display
         $successMessage = "Product added successfully.";
     }
 }
@@ -95,12 +96,25 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     required />
             </div>
             <div class="form-group">
+                <label for="productStocks">Stocks *</label>
+                <input
+                    type="number"
+                    id="productStocks"
+                    name="productStocks"
+                    min="0"
+                    step="1"
+                    placeholder="Enter number of stocks"
+                    required />
+            </div>
+
+            <div class="form-group">
                 <label for="productDescription">Description</label>
                 <textarea
                     id="productDescription"
                     name="productDescription"
                     placeholder="Any details about the product"></textarea>
             </div>
+
             <div class="form-group">
                 <label for="productImageUrl">Image URL</label>
                 <input
@@ -128,6 +142,21 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php if (!empty($product['product_description'])): ?>
                         <p><?= htmlspecialchars($product['product_description']) ?></p>
                     <?php endif; ?>
+
+                    <p>
+                        <strong>Stocks:</strong>
+                        <?php
+                        $stocks = (int) $product['product_stocks'];
+                        if ($stocks === 0) {
+                            echo '<span style="color: orange;">No stock</span>';
+                        } elseif ($stocks <= 10) {
+                            echo '<span style="color: red;">' . $stocks . ' (Critical Alert)</span>';
+                        } else {
+                            echo '<span style="color: green;">' . $stocks . ' (Good condition)</span>';
+                        }
+                        ?>
+                    </p>
+
                     <form method="GET" onsubmit="return confirm('Are you sure you want to delete this product?');" style="margin-top: 10px;">
                         <input type="hidden" name="delete" value="<?= $product['id'] ?>">
                         <button type="submit" class="btn-remove">Remove</button>

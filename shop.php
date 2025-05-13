@@ -19,32 +19,58 @@ if ($search !== '') {
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-// Add to cart logic
+/// Add to cart logic
 if (isset($_POST['add_to_cart'])) {
     if (isset($_SESSION['user'])) {
         $product_id = $_POST['product_id'];
-        $quantity = $_POST['quantity'];
-
+        $quantity = (int) $_POST['quantity'];
         $customer_id = $_SESSION['user']['id'];
 
+        // Check current stock
+        $stmt = $conn->prepare("SELECT product_stocks FROM tbl_products WHERE id = :product_id");
+        $stmt->bindParam(':product_id', $product_id);
+        $stmt->execute();
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$product) {
+            echo "<script>alert('Product not found'); window.history.back();</script>";
+            exit;
+        }
+
+        $current_stock = (int) $product['product_stocks'];
+
+        if ($quantity > $current_stock) {
+            echo "<script>alert('Not enough stock available'); window.history.back();</script>";
+            exit;
+        }
+
+        // Check if product is already in cart
         $stmt = $conn->prepare("SELECT * FROM tbl_carts WHERE product_id = :product_id AND customer_id = :customer_id");
         $stmt->bindParam(':product_id', $product_id);
         $stmt->bindParam(':customer_id', $customer_id);
         $stmt->execute();
 
         if ($stmt->rowCount() > 0) {
+            // Update quantity in cart
             $stmt = $conn->prepare("UPDATE tbl_carts SET quantity = quantity + :quantity WHERE product_id = :product_id AND customer_id = :customer_id");
             $stmt->bindParam(':quantity', $quantity);
             $stmt->bindParam(':product_id', $product_id);
             $stmt->bindParam(':customer_id', $customer_id);
             $stmt->execute();
         } else {
+            // Insert new cart entry
             $stmt = $conn->prepare("INSERT INTO tbl_carts (product_id, customer_id, quantity) VALUES (:product_id, :customer_id, :quantity)");
             $stmt->bindParam(':product_id', $product_id);
             $stmt->bindParam(':customer_id', $customer_id);
             $stmt->bindParam(':quantity', $quantity);
             $stmt->execute();
         }
+
+        // Deduct stock from product
+        $stmt = $conn->prepare("UPDATE tbl_products SET product_stocks = product_stocks - :quantity WHERE id = :product_id");
+        $stmt->bindParam(':quantity', $quantity);
+        $stmt->bindParam(':product_id', $product_id);
+        $stmt->execute();
 
         echo "<script>alert('Added to cart successfully'); window.history.back();</script>";
         exit;
@@ -53,6 +79,7 @@ if (isset($_POST['add_to_cart'])) {
         exit;
     }
 }
+
 
 $cart_items = [];
 if (isset($_SESSION['user'])) {
@@ -352,18 +379,39 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
                                 <img src="default-image.jpg" alt="No Image Available">
                             <?php endif; ?>
                         </div>
+
                         <div class="title"><?= htmlspecialchars($product['product_name']) ?></div>
+
+                        <div class="stock-status" id="stock-status-<?= $product['id'] ?>">
+                            <strong>Stocks:</strong>
+                            <span class="stock-value">
+                                <?php
+                                $stocks = (int) $product['product_stocks'];
+                                if ($stocks === 0) {
+                                    echo '<span style="color: orange; font-weight: bold;">No stock</span>';
+                                } elseif ($stocks <= 10) {
+                                    echo '<span style="color: red; font-weight: bold;">' . $stocks . ' (Critical Alert)</span>';
+                                } else {
+                                    echo '<span style="color: green; font-weight: bold;">' . $stocks . ' (Good condition)</span>';
+                                }
+                                ?>
+                            </span>
+                        </div>
+
+
+
                         <div class="box">
                             <div class="price">₱<?= number_format($product['product_price'], 2) ?></div>
                             <form method="POST" action="shop.php" class="add-to-cart-form">
                                 <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
                                 <label for="quantity-<?= $product['id'] ?>">Quantity:</label>
                                 <input type="number" name="quantity" id="quantity-<?= $product['id'] ?>" value="1" min="1" max="100" required class="quantity-input" />
-                                <button type="submit" name="add_to_cart" class="btn">Add to Cart</button>
+                                <button type="submit" name="add_to_cart" class="btn" <?= $stocks === 0 ? 'disabled' : '' ?>>Add to Cart</button>
                             </form>
                         </div>
                     </div>
                 <?php endforeach; ?>
+
             <?php else: ?>
                 <p style="text-align: center; font-size: 50px; color: red; background-color: white; padding: 20px;">No products available.</p>
             <?php endif; ?>
@@ -444,12 +492,27 @@ if (isset($_POST['checkout']) && isset($_SESSION['user'])) {
                             if (data.status === 'success') {
                                 row.remove();
                                 updateTotal();
+                                updateStockDisplay(data.product_id, data.updated_stock);
                             } else {
                                 alert('Failed to remove item: ' + data.message);
                             }
                         });
                 });
             });
+
+            function updateStockDisplay(productId, stock) {
+                const container = document.querySelector(`#stock-status-${productId} .stock-value`);
+                if (container) {
+                    if (stock === 0) {
+                        container.innerHTML = '<span style="color: orange; font-weight: bold;">No stock</span>';
+                    } else if (stock <= 10) {
+                        container.innerHTML = `<span style="color: red; font-weight: bold;">${stock} (Critical Alert)</span>`;
+                    } else {
+                        container.innerHTML = `<span style="color: green; font-weight: bold;">${stock} (Good condition)</span>`;
+                    }
+                }
+            }
+
 
             function updateTotal() {
                 let total = 0;
